@@ -1,0 +1,5 @@
+include requirements.txt
+include MANIFEST.in
+include README.md
+include heeframework/heeframework.py
+recursive-include MES/Utility *.mmdb

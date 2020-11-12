@@ -3,7 +3,7 @@
 # HeeFramework
 # @Time    : 2020/11/10 15:06
 # @Author  : yanhu.zou
-__version__ = "1.0.0"
+__version__ = "1.0.6"
 
 """
 HeeFramework
@@ -35,7 +35,7 @@ import inspect
 import log4p
 from flask import Flask, Blueprint
 
-logger_ = log4p.GetLogger(logger_name=__name__, logging_level="INFO", config="config/log4p.json")
+logger_ = log4p.GetLogger(logger_name=__name__, logging_level="INFO")
 log_ = logger_.logger
 
 heeFlask = Flask(__name__)
