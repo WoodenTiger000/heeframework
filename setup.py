@@ -6,6 +6,7 @@
 from os import path as os_path
 from setuptools import setup,find_packages
 
+from heeframework import heeframework
 
 this_directory = os_path.abspath(os_path.dirname(__file__))
 
@@ -26,7 +27,7 @@ def read_requirements(filename):
 setup(
     name='heeframework',
     python_requires='>=3.4.0',  # python环境
-    version='1.0.13',  # 包的版本
+    version=heeframework.__version__,  # 包的版本
     description="A lightweight IOC container framework",  # 包简介，显示在PyPI上
     long_description=read_file('README.md'),  # 读取的Readme文档内容
     long_description_content_type="text/markdown",  # 指定包文档格式为markdown

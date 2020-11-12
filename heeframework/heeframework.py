@@ -3,7 +3,7 @@
 # HeeFramework
 # @Time    : 2020/11/10 15:06
 # @Author  : yanhu.zou
-__version__ = "1.0.6"
+__version__ = "1.0.16"
 
 """
 HeeFramework
@@ -82,7 +82,6 @@ class Hee:
 
 class HeeMapping(Blueprint):
     def __init__(self, prefix: str):
-        print("a11")
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
         submod_name = calframe[1][0].f_locals['__name__']
@@ -105,7 +104,7 @@ class HeeApplication:
 
         # Load all submods.
         log_.info('Start loading SubMod.')
-        self.scan_and_load_submod('src')
+        self.scan_and_load_submod('.')
         for submod in hee_container.submods.values():
             log_.info(submod)
         log_.info('All SubMod loaded.')
@@ -126,46 +125,46 @@ class HeeApplication:
 
 
     def scan_and_load_submod(self, path):
-        log_.info("迭代%-4i path=%-30s " % (self.cnt, path))
+        log_.info("scan path: %s " % path)
         self.cnt += 1
         """
-        扫描并加载所有的模块
-        该方法会从当前目录下往下进行扫描，如果有发现有python文件，则将其加载为子模块。
-        加载子模块成功后，会扫描模块下的所有类，创建每个类的实例，
-        容器中该类的实例对象的名称为：模块名 + 类名。
+         Scan and load all modules
+         This method will scan from the current directory, and if a python file is found, it will be loaded as a submodule.
+         After the submodule is successfully loaded, all classes under the module will be scanned and an instance of each class will be created.
+         The name of the instance object of this class in the container is: module name + class name.
 
-        如果子模块中有log或logger变量，则创建Logger对象，并进行关联
-        如果子模块是以Controller结尾的，则创建路由，并将其注册到路由中
+         If there is a log variable in the submodule, create a Logger object and associate it
+         If the submodule ends with the controller, create a route and register it in the route
 
-        最终将所有的模块加载到上下文中。
+         Finally, all modules are loaded into the context.
         """
         if path == '__pycache__':
             return
 
-        # 判断如果是路径，递归处理子路径
+        # Determine if it is a path, process the sub-path recursively
         if os.path.isdir(path):
             for subpath in os.listdir(path):
                 self.scan_and_load_submod(path + "/" + subpath)
 
-        # 如果是一个python文件，加载处理模块
+        # If it is a python file, load the processing module
         elif path.endswith(".py"):
-            # 根路径下的所有文件都跳过
+            # All files under the root path are skipped
             if path == 'hee_framework':
                 return
-            # 加载所有的子模块
+            # Load all submods
             submod_full_name = path.replace("./", "").replace("/", ".").replace(".py", "")
             log_.info('Load submod: ' + submod_full_name)
             submod = importlib.import_module(submod_full_name)
 
 
-            # 自动注入 log
+            # Automatic log injection
             if 'log' in dir(submod):
                 submod_logger = log4p.GetLogger(logger_name=submod_full_name, config="config/log4p.json")
                 submod.log = submod_logger.logger
                 log_.info("submod [" + submod_full_name + "] log has been initialized.")
 
 
-            # 将子模块引用进行归档
+            # save submods
             hee_container.submods[submod_full_name] = submod
 
 
@@ -180,7 +179,10 @@ class HeeApplication:
             for name, class_ in classes:
                 if hasattr(class_, 'hee_dependency_enable'):
                     contained_object_name = class_.__module__ + '.' + class_.__name__
-                    # 同一个类仅实例化一次，TODO 因为import进来的类也算本类的成员，后面看是否有办法排除掉，目前通过名称防止重复构建
+                    # The same class is instantiated only once. The class imported in
+                    #  TODO is also considered a member of this class.
+                    #  I will see if there is a way to exclude it later.
+                    #  Currently, the name is used to prevent repeated construction
                     if contained_object_name not in hee_container.objects:
                         obj = class_()  # 初始化示例
                         log_.info("contained object: " + contained_object_name)
@@ -218,8 +220,9 @@ class HeeApplication:
         """
         Building sub dependencies.
         After all beans are created successfully, the HeeFramework automatically scans and assembles dependencies.
-        TODO 对象自动注入，语言特性暂无找到可以实现的方式，因为找不到可以获取 对象成员变量注解的途径
-        暂时只能使用模块级别的依赖注入
+        TODO objects are automatically injected, and the language feature has not found a way to achieve it,
+        because there is no way to get the annotations of the object member variables
+        For the time being, only module-level dependency injection can be used
         """
         log_.info("Start to automatically inject dependencies into the objects.")
         # Inject dependencies into contained objects
