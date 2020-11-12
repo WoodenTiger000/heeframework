@@ -3,45 +3,37 @@
 # HeeFramework
 # @Time    : 2020/11/10 15:06
 # @Author  : yanhu.zou
-
+__version__ = "1.0.0"
 
 """
-[ HeeFramework ]
+HeeFramework
 
-概要说明：
-    HeeFramework是用来快速构建Python Restful应用的一个框架，
-    主要实现自动web注册请求路由，子模块的自动发现和导入，
+Summary:
+A module-oriented comprehensive IOC container framework, 
+which realizes the automatic management of dependent components 
+and component dependencies, and defines a new python module organization.
 
-主要功能：
-1. 动态发现和导入包(默认扫描的根目录为 application.py 即本文件所在的目录)
+Main Feature
+1. Dynamically discover and import packages (the root directory scanned by default is application.py, which is the directory where this file is located)
 
-2. 动态识别和注册控制器
-    旧方式1：所有的路由写在一个文件中
-    旧方式2：分在不同的文件，然后在主文件中每次进行修改注册
+2. Dynamically identify and register the controller
 
-3. 自动动态实例化对象
-    旧方式1：手工进行创建
+3. Automatically and dynamically instantiate objects
 
-4. 自动依赖注入
-    旧方式1：每次都需要手工建立关系
-    旧方式2：使用全局变量或单例
+4. Automatic dependency injection
 
-5. 自动创建和关联类变量logger或log
+5. Automatically create and associate class variable logger or log
 
-    待办列表：
-        1. 运行之前自动检查和导入依赖
-
+Next Version Plan
+1. Automatically check and import dependencies before running
 
 """
 import os
 import importlib
 import inspect
-from abc import abstractmethod, ABC
 
 import log4p
 from flask import Flask, Blueprint
-import traceback
-import sys
 
 logger_ = log4p.GetLogger(logger_name=__name__, logging_level="INFO", config="config/log4p.json")
 log_ = logger_.logger
@@ -113,7 +105,7 @@ class HeeApplication:
 
         # Load all submods.
         log_.info('Start loading SubMod.')
-        self.scan_and_load_submod('.')
+        self.scan_and_load_submod('src')
         for submod in hee_container.submods.values():
             log_.info(submod)
         log_.info('All SubMod loaded.')
@@ -237,7 +229,7 @@ class HeeApplication:
             obj = hee_container.objects[obj_name]
         #  print("obj.__dict__", obj.__dict__)
 
-class HeeRestApplication(HeeApplication, ABC):
+class HeeRestApplication(HeeApplication):
     """
     HeeRestApplication
     Used to build restful applications
@@ -268,11 +260,11 @@ class HeeRestApplication(HeeApplication, ABC):
 
 
 
-class HeeWebApplication(HeeApplication, ABC):
+class HeeWebApplication(HeeApplication):
     pass
 
 
-class HeeSchedApplication(HeeApplication, ABC):
+class HeeSchedApplication(HeeApplication):
     pass
 
 
