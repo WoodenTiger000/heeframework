@@ -6,7 +6,7 @@
 from os import path as os_path
 from setuptools import setup,find_packages
 
-from heeframework import heeframework
+from hee import heeframework
 
 this_directory = os_path.abspath(os_path.dirname(__file__))
 

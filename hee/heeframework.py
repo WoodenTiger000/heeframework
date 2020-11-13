@@ -3,7 +3,10 @@
 # HeeFramework
 # @Time    : 2020/11/10 15:06
 # @Author  : yanhu.zou
-__version__ = "1.0.17"
+__version__ = "1.0.20"
+
+import shutil
+import sys
 
 """
 HeeFramework
@@ -46,7 +49,26 @@ import inspect
 import log4p
 from flask import Flask, Blueprint
 
-logger_ = log4p.GetLogger(logger_name=__name__, logging_level="INFO")
+
+def prepare_dir_and_template_file():
+    # check and create config dir
+    if not os.path.exists("config/"):
+        os.mkdir("config/")
+
+    # check and create log dir
+    if not os.path.exists("../logs"):
+        os.mkdir("../logs")
+
+    # log4p config file
+    pkgdir = sys.modules['hee'].__path__[0]
+    fullpath = os.path.join(pkgdir, 'log4p_template.json')
+    shutil.copy(fullpath, 'config/log4p.json')
+
+print("初始化。。。")
+
+prepare_dir_and_template_file()
+
+logger_ = log4p.GetLogger(logger_name=__name__, logging_level="INFO", config="config/log4p.json")
 log_ = logger_.logger
 
 heeFlask = Flask(__name__)
@@ -56,11 +78,13 @@ class HeeContainer:
     """
     submod and object container.
     """
+
     def __init__(self):
         # all submods
         self.submods: dict = {}
         # object container
         self.objects: dict = {}
+        log_.info("初始化HeeContainer")
 
     def get_obj_by_name(self, obj_name: str):
         if obj_name in self.objects:
@@ -69,7 +93,7 @@ class HeeContainer:
             return None
 
     def get_submod_by_name(self, submod_name: str):
-        if submod_name in self.submods :
+        if submod_name in self.submods:
             return self.submods[submod_name]
 
 
@@ -80,6 +104,7 @@ class Hee:
     """
     Facade of Hee
     """
+
     def __init__(self):
         super(Hee, self).__init__()
         self.__container = hee_container
@@ -99,7 +124,6 @@ class HeeMapping(Blueprint):
         super(HeeMapping, self).__init__(name=submod_name, import_name=submod_name, url_prefix=prefix)
 
 
-
 class HeeApplication:
     """
     HeeApplication
@@ -115,7 +139,7 @@ class HeeApplication:
 
         # Load all submods.
         log_.info('Start loading SubMod.')
-        self.scan_and_load_submod('..')
+        self.scan_and_load_submod('.')
         for submod in hee_container.submods.values():
             log_.info(submod)
         log_.info('All SubMod loaded.')
@@ -129,11 +153,8 @@ class HeeApplication:
         # Build object dependencies
         self.build_bean_dependencies()
 
-
-
-    def sart(self):
+    def start(self):
         pass
-
 
     def scan_and_load_submod(self, path):
         log_.info("scan path: %s " % path)
@@ -167,17 +188,14 @@ class HeeApplication:
             log_.info('Load submod: ' + submod_full_name)
             submod = importlib.import_module(submod_full_name)
 
-
             # Automatic log injection
             if 'log' in dir(submod):
                 submod_logger = log4p.GetLogger(logger_name=submod_full_name, config="config/log4p.json")
                 submod.log = submod_logger.logger
                 log_.info("submod [" + submod_full_name + "] log has been initialized.")
 
-
             # save submods
             hee_container.submods[submod_full_name] = submod
-
 
     def instantiate_objects(self):
         """
@@ -203,7 +221,6 @@ class HeeApplication:
         for key in hee_container.objects:
             log_.info("name=" + key + ", object: " + hee_container.objects[key].__str__())
 
-
     def build_submod_dependencies(self):
         """
         Building sub dependencies.
@@ -226,7 +243,6 @@ class HeeApplication:
                             log_.info(
                                 "Auto inject [" + contained_object_name + "] into submod " + submod_name + " success.")
 
-
     def build_bean_dependencies(self):
         """
         Building sub dependencies.
@@ -242,6 +258,7 @@ class HeeApplication:
                 continue
             obj = hee_container.objects[obj_name]
         #  print("obj.__dict__", obj.__dict__)
+
 
 class HeeRestApplication(HeeApplication):
     """
@@ -271,17 +288,12 @@ class HeeRestApplication(HeeApplication):
         heeFlask.run()
 
 
-
-
-
 class HeeWebApplication(HeeApplication):
     pass
 
 
 class HeeSchedApplication(HeeApplication):
     pass
-
-
 
 
 def component(cls):

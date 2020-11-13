@@ -7,32 +7,32 @@ HeeFramewrok (Hee for short) is a module-oriented, low-invasive IOC container fr
 Hee provides a container to manage the life cycle and component dependencies of each component object. Hee defines a new module organization.
 
 #### 2 Main features and functions
-1. Simple to use
+**1. Simple to use**  
     Through the case in the "Instructions section" later, you will find that you will soon be able to use the framework and like it.
    
-2. Lightweight and module-oriented
+**2. Lightweight and module-oriented**  
     Hee is lightweight, both in terms of volume and design. It manages its dependencies through the introduction of dynamic modules.
     For example, the framework provides support for MySQL but if you happen to not need MySQL, the application will not introduce any mysql-related packages at startup.
    
-3. Low invasiveness
+**3. Low invasiveness**  
     In addition to decorators to identify the classes you need to let the container manage, almost no additional code is added.
 
-4. Container
+**4. Container**  
     Provide a container to manage the life cycle of an object, and you can even configure how your object will be created.
 
-5. Automatic registration of the controller module
+**5. Automatic registration of the controller module**  
     You only need to create your controller module, and Hee will automatically load and register the controller module you created.
 
-6. Dynamically discover and import user-defined modules
+**6. Dynamically discover and import user-defined modules**  
     Provides a dynamic scanning mechanism that can recursively scan each module from the default or specified root path, automatically discover the classes marked in the modules, and automatically create examples of that class.
 
-7. Inversion of Control
+**7. Inversion of Control**  
     Hee automatically injects object dependencies through the inversion of control technology, including one-way dependencies and two-way dependencies. You don’t need to find or create the dependencies you need,
 
-8. Built-in objects
+**8. Built-in objects**  
     Hee will automatically create common objects for each class, such as log objects.
 
-9. Automatically check and import dependencies (TODO) before running
+**9. Automatically check and import dependencies before running(TODO)**  
     When Hee starts, it will automatically scan the modules that the framework itself depends on and import them automatically. Of course, what to import depends on which features of the framework you will use.
     
 #### 3 User Guide
@@ -45,7 +45,7 @@ Hee provides a container to manage the life cycle and component dependencies of 
 ###### 3.2.1 How to create a Hee ordinary application
 Create an application.py under the root path of your project source code (the file name is not fixed, you can name it yourself), and then write the content.
 ````python
-from heeframework import HeeApplication
+from hee import HeeApplication
 
 class Application(HeeApplication):
     # your code
@@ -63,7 +63,7 @@ After writing, execute python3 application.py to start the project.
 ###### 3.2.2. How to create a Hee Restful application
 Create an application.py under the root path of your project source code (the file name is not fixed, you can name it yourself), and then write the content.
 ````python
-from heeframework import HeeRestApplication
+from hee import HeeRestApplication
 
 class Application(HeeRestApplication):
     # your code
@@ -79,9 +79,9 @@ After writing, python3 application.py can start the project
 ###### 3.2.3 How to create a scheduling batch application
 Create an application.py under the root path of your project source code (the file name is not fixed, you can name it yourself), and then write the content.
 ````python
-from heeframework import HeeScheduledApplication
+from hee import HeeSchedApplication
 
-class Application(HeeScheduledApplication):
+class Application(HeeSchedApplication):
     # your code
     pass
 
@@ -96,7 +96,7 @@ The controller refers to the first barrier for processing http requests from the
 ##### 3. How to create a controller module
 Create a controller folder in your root directory, create a foo_controller.py file, and write the content. The controller will be automatically registered to the app, you don't need any other operations.
 ````python
-from heeframework import HeeMapping
+from hee import HeeMapping
 
 mapping:HeeMapping = HeeMapping("/foo")
 
@@ -114,7 +114,7 @@ The sub-modules will be scanned by Hee and added to the Hee container.
 We now create a foo_service.py in the service directory and write the following:
 ````python
 from logging import Logger
-from heeframework import component
+from hee import component
 
 # Automatic injection
 log: Logger = None
@@ -137,7 +137,7 @@ Here we let Hee automatically inject an instance of FooService into FooControlle
 ````python
 from logging import Logger
 
-from heeframework import HeeMapping
+from hee import HeeMapping
 from modules.service.foo_service import FooService
 
 mapping = HeeMapping("/foo")

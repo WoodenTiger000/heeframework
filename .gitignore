@@ -1,2 +1,5 @@
 /venv/
 /venv-linux/
+/dist/
+/heeframework.egg-info/
+/config/
