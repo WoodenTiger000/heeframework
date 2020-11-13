@@ -3,29 +3,40 @@
 # HeeFramework
 # @Time    : 2020/11/10 15:06
 # @Author  : yanhu.zou
-__version__ = "1.0.16"
+__version__ = "1.0.17"
 
 """
 HeeFramework
 
-Summary:
-A module-oriented comprehensive IOC container framework, 
-which realizes the automatic management of dependent components 
-and component dependencies, and defines a new python module organization.
+1. Simple to use
+    Through the case in the "Instructions section" later, you will find that you will soon be able to use the framework and like it.
+   
+2. Lightweight and module-oriented
+    Hee is lightweight, both in terms of volume and design. It manages its dependencies through the introduction of dynamic modules.
+    For example, the framework provides support for MySQL but if you happen to not need MySQL, the application will not introduce any mysql-related packages at startup.
+   
+3. Low invasiveness
+    In addition to decorators to identify the classes you need to let the container manage, almost no additional code is added.
 
-Main Feature
-1. Dynamically discover and import packages (the root directory scanned by default is application.py, which is the directory where this file is located)
+4. Container
+    Provide a container to manage the life cycle of an object, and you can even configure how your object will be created.
 
-2. Dynamically identify and register the controller
+5. Automatic registration of the controller module
+    You only need to create your controller module, and Hee will automatically load and register the controller module you created.
 
-3. Automatically and dynamically instantiate objects
+6. Dynamically discover and import user-defined modules
+    Provides a dynamic scanning mechanism that can recursively scan each module from the default or specified root path, automatically discover the classes marked in the modules, and automatically create examples of that class.
 
-4. Automatic dependency injection
+7. Inversion of Control
+    Hee automatically injects object dependencies through the inversion of control technology, including one-way dependencies and two-way dependencies. You don’t need to find or create the dependencies you need,
 
-5. Automatically create and associate class variable logger or log
+8. Built-in objects
+    Hee will automatically create common objects for each class, such as log objects.
 
-Next Version Plan
-1. Automatically check and import dependencies before running
+9. Automatically check and import dependencies (TODO) before running
+    When Hee starts, it will automatically scan the modules that the framework itself depends on and import them automatically. Of course, what to import depends on which features of the framework you will use.
+  
+
 
 """
 import os
@@ -104,7 +115,7 @@ class HeeApplication:
 
         # Load all submods.
         log_.info('Start loading SubMod.')
-        self.scan_and_load_submod('.')
+        self.scan_and_load_submod('..')
         for submod in hee_container.submods.values():
             log_.info(submod)
         log_.info('All SubMod loaded.')
@@ -129,7 +140,7 @@ class HeeApplication:
         self.cnt += 1
         """
          Scan and load all modules
-         This method will scan from the current directory, and if a python file is found, it will be loaded as a submodule.
+         This method will scan from the current directory, and if a main files is found, it will be loaded as a submodule.
          After the submodule is successfully loaded, all classes under the module will be scanned and an instance of each class will be created.
          The name of the instance object of this class in the container is: module name + class name.
 
@@ -146,7 +157,7 @@ class HeeApplication:
             for subpath in os.listdir(path):
                 self.scan_and_load_submod(path + "/" + subpath)
 
-        # If it is a python file, load the processing module
+        # If it is a main files, load the processing module
         elif path.endswith(".py"):
             # All files under the root path are skipped
             if path == 'hee_framework':

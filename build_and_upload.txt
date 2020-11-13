@@ -5,4 +5,4 @@ heeframework.py中的__version__
 python3 setup.py sdist
 
 第二步：上传到PYPI (注意版本号)
-twine upload dist/heeframework-1.0.16.tar.gz
+twine upload dist/heeframework-1.0.17.tar.gz
