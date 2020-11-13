@@ -43,7 +43,7 @@ Hee提供了一个容器来管理各个组件对象的生命周期和组件依�
 
 ##### 3.2 Hee应用
 ###### 3.2.1 如何创建一个Hee普通应用
-在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入一下内容。
+在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入以下内容。
 ````python
 from heeframework import HeeApplication
 
@@ -61,7 +61,7 @@ if __name__ == '__main__':
 
 
 ###### 3.2.2. 如何创建一个Hee Restful应用  
-在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入一下内容。
+在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入以下内容。
 ````python
 from heeframework import HeeRestApplication
 
@@ -77,7 +77,7 @@ if __name__ == '__main__':
 
 
 ###### 3.2.3 如何创建一个调度批处理应用  
-在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入一下内容。
+在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入以下内容。
 ````python
 from heeframework import HeeScheduledApplication
 
@@ -94,7 +94,7 @@ if __name__ == '__main__':
 ##### 3.3 控制器
 控制器是指处理来自互联网的http请求的第一道屏障，主要用于各种控制能力，包括参数认证控制、权限控制、校验控制、流程控制，返回控制等等。
 ##### 3. 如何创建一个控制器模块
-在您的根目录下创建一个controller文件夹，创建 foo_controller.py 文件，并写入一下内容。控制器将会被自动注册到应用程序，您无需任何其他操作。
+在您的根目录下创建一个controller文件夹，创建 foo_controller.py 文件，并写入以下内容。控制器将会被自动注册到应用程序，您无需任何其他操作。
 ````python
 from heeframework import HeeMapping
 
