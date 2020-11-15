@@ -3,7 +3,7 @@
 # HeeFramework
 # @Time    : 2020/11/10 15:06
 # @Author  : yanhu.zou
-__version__ = "1.0.20"
+__version__ = "1.0.21"
 
 import shutil
 import sys
@@ -47,32 +47,14 @@ import importlib
 import inspect
 
 import log4p
-from flask import Flask, Blueprint
+from flask import Flask, Blueprint, request, send_from_directory
 
 
-def prepare_dir_and_template_file():
-    # check and create config dir
-    if not os.path.exists("config/"):
-        os.mkdir("config/")
+print("heeframework start starts to initialize.")
 
-    # check and create log dir
-    if not os.path.exists("../logs"):
-        os.mkdir("../logs")
-
-    # log4p config file
-    pkgdir = sys.modules['hee'].__path__[0]
-    fullpath = os.path.join(pkgdir, 'log4p_template.json')
-    shutil.copy(fullpath, 'config/log4p.json')
-
-print("初始化。。。")
-
-prepare_dir_and_template_file()
 
 logger_ = log4p.GetLogger(logger_name=__name__, logging_level="INFO", config="config/log4p.json")
 log_ = logger_.logger
-
-heeFlask = Flask(__name__)
-
 
 class HeeContainer:
     """
@@ -84,7 +66,7 @@ class HeeContainer:
         self.submods: dict = {}
         # object container
         self.objects: dict = {}
-        log_.info("初始化HeeContainer")
+        log_.info("HeeContainer init.")
 
     def get_obj_by_name(self, obj_name: str):
         if obj_name in self.objects:
@@ -97,17 +79,16 @@ class HeeContainer:
             return self.submods[submod_name]
 
 
-hee_container = HeeContainer()
-
 
 class Hee:
     """
     Facade of Hee
     """
 
-    def __init__(self):
+    def __init__(self, hee_container):
         super(Hee, self).__init__()
         self.__container = hee_container
+        log_.info("hee init")
 
     def get_obj_by_name(self, name: str):
         return self.__container.get_obj_by_name(name)
@@ -116,12 +97,8 @@ class Hee:
         return self.__container.get_submod_by_name(name)
 
 
-class HeeMapping(Blueprint):
-    def __init__(self, prefix: str):
-        curframe = inspect.currentframe()
-        calframe = inspect.getouterframes(curframe, 2)
-        submod_name = calframe[1][0].f_locals['__name__']
-        super(HeeMapping, self).__init__(name=submod_name, import_name=submod_name, url_prefix=prefix)
+
+
 
 
 class HeeApplication:
@@ -132,15 +109,18 @@ class HeeApplication:
     """
 
     def __init__(self):
+        # Hee container
+        self.hee_container = HeeContainer()
+
         # Hee
-        self.hee = Hee()
+        self.hee = Hee(self.hee_container)
 
         self.cnt = 0
 
         # Load all submods.
         log_.info('Start loading SubMod.')
         self.scan_and_load_submod('.')
-        for submod in hee_container.submods.values():
+        for submod in self.hee_container.submods.values():
             log_.info(submod)
         log_.info('All SubMod loaded.')
 
@@ -157,8 +137,6 @@ class HeeApplication:
         pass
 
     def scan_and_load_submod(self, path):
-        log_.info("scan path: %s " % path)
-        self.cnt += 1
         """
          Scan and load all modules
          This method will scan from the current directory, and if a main files is found, it will be loaded as a submodule.
@@ -170,6 +148,11 @@ class HeeApplication:
 
          Finally, all modules are loaded into the context.
         """
+        log_.info("scan path: %s " % path)
+        self.cnt += 1
+        if path == './hee':
+            return
+
         if path == '__pycache__':
             return
 
@@ -194,8 +177,13 @@ class HeeApplication:
                 submod.log = submod_logger.logger
                 log_.info("submod [" + submod_full_name + "] log has been initialized.")
 
+            # Automatic hee injection
+            if 'hee' in dir(submod):
+                submod.hee = self.hee
+                log_.info("submod [" + submod_full_name + "] hee has been initialized.")
+
             # save submods
-            hee_container.submods[submod_full_name] = submod
+            self.hee_container.submods[submod_full_name] = submod
 
     def instantiate_objects(self):
         """
@@ -203,8 +191,8 @@ class HeeApplication:
         """
         log_.info("Start instantiating objects")
         # Scan all submod
-        for submod_name in hee_container.submods:
-            classes = inspect.getmembers(hee_container.submods[submod_name], inspect.isclass)
+        for submod_name in self.hee_container.submods:
+            classes = inspect.getmembers(self.hee_container.submods[submod_name], inspect.isclass)
             for name, class_ in classes:
                 if hasattr(class_, 'hee_dependency_enable'):
                     contained_object_name = class_.__module__ + '.' + class_.__name__
@@ -212,14 +200,14 @@ class HeeApplication:
                     #  TODO is also considered a member of this class.
                     #  I will see if there is a way to exclude it later.
                     #  Currently, the name is used to prevent repeated construction
-                    if contained_object_name not in hee_container.objects:
+                    if contained_object_name not in self.hee_container.objects:
                         obj = class_()  # 初始化示例
                         log_.info("contained object: " + contained_object_name)
-                        hee_container.objects[contained_object_name] = obj
+                        self.hee_container.objects[contained_object_name] = obj
 
         log_.info("objects in container: ")
-        for key in hee_container.objects:
-            log_.info("name=" + key + ", object: " + hee_container.objects[key].__str__())
+        for key in self.hee_container.objects:
+            log_.info("name=" + key + ", object: " + self.hee_container.objects[key].__str__())
 
     def build_submod_dependencies(self):
         """
@@ -228,8 +216,8 @@ class HeeApplication:
         """
         # Inject dependencies into submods
         log_.info("Start to automatically inject dependencies into the submods.")
-        for submod_name in hee_container.submods:
-            submod = hee_container.submods[submod_name]
+        for submod_name in self.hee_container.submods:
+            submod = self.hee_container.submods[submod_name]
             # print("submod: ", submod)
             members = inspect.getmembers(submod)
             for m in members:
@@ -238,8 +226,8 @@ class HeeApplication:
                     for var_name in annos:
                         var_type = annos[var_name]
                         contained_object_name = var_type.__module__ + "." + var_type.__name__
-                        if contained_object_name in hee_container.objects:
-                            setattr(submod, var_name, hee_container.objects[contained_object_name])
+                        if contained_object_name in self.hee_container.objects:
+                            setattr(submod, var_name, self.hee_container.objects[contained_object_name])
                             log_.info(
                                 "Auto inject [" + contained_object_name + "] into submod " + submod_name + " success.")
 
@@ -253,10 +241,10 @@ class HeeApplication:
         """
         log_.info("Start to automatically inject dependencies into the objects.")
         # Inject dependencies into contained objects
-        for obj_name in hee_container.objects:
+        for obj_name in self.hee_container.objects:
             if obj_name != 'service.ner_data_service.NerDataService':
                 continue
-            obj = hee_container.objects[obj_name]
+            obj = self.hee_container.objects[obj_name]
         #  print("obj.__dict__", obj.__dict__)
 
 
@@ -268,6 +256,8 @@ class HeeRestApplication(HeeApplication):
 
     def __init__(self):
         super(HeeRestApplication, self).__init__()
+        self.heeFlask = Flask(__name__, static_folder="../static/", template_folder="../tempalte/")
+        self.web = Web(self.heeFlask)
         self.initialize_controller()
 
     def initialize_controller(self):
@@ -275,18 +265,56 @@ class HeeRestApplication(HeeApplication):
         Map all controllers
         """
         log_.info("Map all controllers.")
-        for submod_name in hee_container.submods:
+        for submod_name in self.hee_container.submods:
             if submod_name.endswith("controller"):
-                submod = hee_container.submods[submod_name]
+                submod = self.hee_container.submods[submod_name]
                 if hasattr(submod, 'mapping'):
-                    heeFlask.register_blueprint(submod.mapping)
+                    self.heeFlask.register_blueprint(submod.mapping)
 
+                if hasattr(submod, 'web'):
+                    submod.web = self.web
                 pass
 
-    def start(self):
+    def start(self, host="127.0.0.1", port=5000):
         log_.info("application is starting...")
-        heeFlask.run()
+        self.heeFlask.run(host=host, port=port)
 
+class Web:
+    """
+    If you are building a web application, the web object will be injected into the controller when the controller is initialized. The web object provides the ability to process request parameters, request data acquisition, file download, upload, etc.
+    """
+    def __init__(self, flask: Flask):
+        self.flask: Flask = flask
+
+    def request_params(self):
+        return request.args
+
+    def request_data(self):
+        return request.data
+
+    def request_files(self):
+        return request.files
+
+    def download(self, directory: str, file: str, **options):
+        abs_download_dir = os.path.abspath(directory)
+        # log_.info("abs_download_file: " + abs_download_dir)
+        if not os.path.exists(abs_download_dir):
+            return "file not existed!"
+        else:
+            return send_from_directory(abs_download_dir, file, **options)
+
+    def static_file(self, filename: str):
+        return self.flask.send_static_file(filename)
+
+class HeeMapping(Blueprint):
+    """
+    Used to declare the request path, each controller needs to create an object of this type
+    """
+    def __init__(self, prefix: str):
+        curframe = inspect.currentframe()
+        calframe = inspect.getouterframes(curframe, 2)
+        submod_name = calframe[1][0].f_locals['__name__']
+        super(HeeMapping, self).__init__(name=submod_name, import_name=submod_name, url_prefix=prefix)
 
 class HeeWebApplication(HeeApplication):
     pass
