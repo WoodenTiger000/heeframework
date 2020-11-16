@@ -3,7 +3,7 @@
 # HeeFramework
 # @Time    : 2020/11/10 15:06
 # @Author  : yanhu.zou
-__version__ = "1.0.22"
+__version__ = "1.0.23"
 
 import shutil
 import sys
@@ -150,15 +150,15 @@ class HeeApplication:
         """
         log_.info("scan path: %s " % path)
         self.cnt += 1
-        if path == './hee':
-            return
-
-        if path == '__pycache__':
-            return
 
         # Determine if it is a path, process the sub-path recursively
         if os.path.isdir(path):
             for subpath in os.listdir(path):
+                if subpath == './hee':
+                    return
+
+                if subpath == '__pycache__':
+                    return
                 self.scan_and_load_submod(path + "/" + subpath)
 
         # If it is a main files, load the processing module
@@ -255,8 +255,12 @@ class HeeRestApplication(HeeApplication):
     """
 
     def __init__(self):
+        static_path = os.getcwd() + os.path.sep + 'static'
+        template_path = os.getcwd() + os.path.sep + 'template'
+        log_.info("static file path: " + static_path)
+        log_.info("tempalte file path: " + template_path)
         super(HeeRestApplication, self).__init__()
-        self.heeFlask = Flask(__name__, static_folder="../static/", template_folder="../tempalte/")
+        self.heeFlask = Flask(__name__, static_folder=static_path, template_folder=template_path)
         self.web = Web(self.heeFlask)
         self.initialize_controller()
 
@@ -328,8 +332,9 @@ class HeeWebApplication(HeeRestApplication):
         If it is a web project, it will directly initialize a static path and template path to prevent static files and template files
         :return:
         """
-        if not os.path.exists("static/"):
-            os.mkdir("static/")
+        root_path = os.getcwd()
+        if not os.path.exists(root_path + "/static/"):
+            os.mkdir(root_path + "/static/")
             log_.info("The static dir does not exists, create it.")
         if not os.path.exists("template/"):
             os.mkdir("template")

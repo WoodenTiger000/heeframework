@@ -67,6 +67,7 @@ if config.has_section('mybatis'):
 
 
 from hee.heeframework import HeeRestApplication
+from hee.heeframework import HeeWebApplication
 from hee.heeframework import HeeApplication
 from hee.heeframework import HeeSchedApplication
 from hee.heeframework import HeeMapping
