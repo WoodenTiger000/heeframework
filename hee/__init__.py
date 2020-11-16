@@ -45,9 +45,6 @@ if not os.path.exists("modules/dao/"):
 if not os.path.exists("modules/controller"):
     os.mkdir("modules/controller")
 
-if not os.path.exists("static/"):
-    os.mkdir("static/")
-
 # check and create log dir
 if not os.path.exists("../logs"):
     os.mkdir("../logs")

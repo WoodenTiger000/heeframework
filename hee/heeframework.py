@@ -3,7 +3,7 @@
 # HeeFramework
 # @Time    : 2020/11/10 15:06
 # @Author  : yanhu.zou
-__version__ = "1.0.21"
+__version__ = "1.0.22"
 
 import shutil
 import sys
@@ -316,12 +316,39 @@ class HeeMapping(Blueprint):
         submod_name = calframe[1][0].f_locals['__name__']
         super(HeeMapping, self).__init__(name=submod_name, import_name=submod_name, url_prefix=prefix)
 
-class HeeWebApplication(HeeApplication):
-    pass
+class HeeWebApplication(HeeRestApplication):
+    def __init__(self):
+        self.initialize_default_dir()
+        super(HeeWebApplication, self).__init__()
+
+
+    def initialize_default_dir(self):
+        """
+        Initialize all default paths of the project.
+        If it is a web project, it will directly initialize a static path and template path to prevent static files and template files
+        :return:
+        """
+        if not os.path.exists("static/"):
+            os.mkdir("static/")
+            log_.info("The static dir does not exists, create it.")
+        if not os.path.exists("template/"):
+            os.mkdir("template")
+            log_.info("The template dir does not exists, create it.")
 
 
 class HeeSchedApplication(HeeApplication):
-    pass
+    def __init__(self):
+        self.initialize_default_dir()
+        super(HeeSchedApplication, self).__init__()
+
+    def initialize_default_dir(self):
+        """
+        If it is a scheduling project, a jobs directory will be initialized to place scheduling tasks
+        :return:
+        """
+        if not os.path.exists("jobs/"):
+            os.mkdir("jobs/")
+            log_.info("The static dir does not exists, create it.")
 
 
 def component(cls):

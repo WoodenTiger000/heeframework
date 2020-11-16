@@ -2,6 +2,7 @@ include requirements.txt
 include MANIFEST.in
 include README.md
 include README-CN.md
+include hee/app_template.conf
 include hee/log4p_template.json
 include hee/heeframework.py
 include hee/__init__.py
