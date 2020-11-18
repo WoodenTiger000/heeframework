@@ -5,8 +5,8 @@
 # @Author  : yanhu.zou
 __version__ = "1.0.23"
 
-import shutil
-import sys
+import datetime
+import json
 
 """
 HeeFramework
@@ -42,6 +42,9 @@ HeeFramework
 
 
 """
+
+import shutil
+import sys
 import os
 import importlib
 import inspect
@@ -49,12 +52,13 @@ import inspect
 import log4p
 from flask import Flask, Blueprint, request, send_from_directory
 
+from heeconfig import Config
 
 print("heeframework start starts to initialize.")
 
-
 logger_ = log4p.GetLogger(logger_name=__name__, logging_level="INFO", config="config/log4p.json")
 log_ = logger_.logger
+
 
 class HeeContainer:
     """
@@ -79,7 +83,6 @@ class HeeContainer:
             return self.submods[submod_name]
 
 
-
 class Hee:
     """
     Facade of Hee
@@ -97,10 +100,6 @@ class Hee:
         return self.__container.get_submod_by_name(name)
 
 
-
-
-
-
 class HeeApplication:
     """
     HeeApplication
@@ -115,7 +114,31 @@ class HeeApplication:
         # Hee
         self.hee = Hee(self.hee_container)
 
-        self.cnt = 0
+        # Config
+        self.config = Config()
+
+        # dynami module MYSQL
+        if self.config.has_section('MYSQL'):
+            host_ = self.config.get_str('MYSQL', 'host')
+            port_ = self.config.get_int('MYSQL', 'port')
+            user_ = self.config.get_str('MYSQL', 'user')
+            password_ = self.config.get_str('MYSQL', 'pass')
+            db_ = self.config.get_str('MYSQL', 'db')
+            pool_max_ = self.config.get_int('MYSQL', 'pool_max')
+            pool_init_ = self.config.get_int('MYSQL', 'pool_init')
+            pool_idle_ = self.config.get_int('MYSQL', 'pool_idle')
+
+            # 初始化数据库管理
+            self.dbmysql = DbMySQL(
+                host=host_,
+                port=port_,
+                user=user_,
+                password=password_,
+                database=db_,
+                pool_init=pool_init_,
+                pool_max=pool_max_,
+                pool_idle=pool_idle_
+            )
 
         # Load all submods.
         log_.info('Start loading SubMod.')
@@ -149,7 +172,6 @@ class HeeApplication:
          Finally, all modules are loaded into the context.
         """
         log_.info("scan path: %s " % path)
-        self.cnt += 1
 
         # Determine if it is a path, process the sub-path recursively
         if os.path.isdir(path):
@@ -157,11 +179,18 @@ class HeeApplication:
                 if subpath == './hee':
                     return
 
-                if subpath == '__pycache__':
+                if subpath.endswith('__pycache__'):
                     return
+
+                if subpath == 'static':
+                    return
+
+                if subpath == 'template':
+                    return
+
                 self.scan_and_load_submod(path + "/" + subpath)
 
-        # If it is a main files, load the processing module
+        # If it is a python file, load the processing module
         elif path.endswith(".py"):
             # All files under the root path are skipped
             if path == 'hee_framework':
@@ -170,6 +199,10 @@ class HeeApplication:
             submod_full_name = path.replace("./", "").replace("/", ".").replace(".py", "")
             log_.info('Load submod: ' + submod_full_name)
             submod = importlib.import_module(submod_full_name)
+
+            # Automatic config injection
+            if 'config' in dir(submod):
+                submod.config = self.config
 
             # Automatic log injection
             if 'log' in dir(submod):
@@ -181,6 +214,12 @@ class HeeApplication:
             if 'hee' in dir(submod):
                 submod.hee = self.hee
                 log_.info("submod [" + submod_full_name + "] hee has been initialized.")
+
+            # -- flows are dynamic builtin module. --
+            # db_mysql dynamic module injection
+            if 'db' in dir(submod):
+                submod.db = self.dbmysql
+                log_.info("submod [" + submod_full_name + "] dynamic module has been initialized.")
 
             # save submods
             self.hee_container.submods[submod_full_name] = submod
@@ -283,10 +322,12 @@ class HeeRestApplication(HeeApplication):
         log_.info("application is starting...")
         self.heeFlask.run(host=host, port=port)
 
+
 class Web:
     """
     If you are building a web application, the web object will be injected into the controller when the controller is initialized. The web object provides the ability to process request parameters, request data acquisition, file download, upload, etc.
     """
+
     def __init__(self, flask: Flask):
         self.flask: Flask = flask
 
@@ -308,23 +349,39 @@ class Web:
             return send_from_directory(abs_download_dir, file, **options)
 
     def static_file(self, filename: str):
+        """
+        根路径
+        :param filename:
+        :return:
+        """
         return self.flask.send_static_file(filename)
+
+    def json(self, data):
+        return json.dumps(data, cls=DateEncoder)
+
+class DateEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.strftime("%Y-%m-%d %H:%M:%S")
+        else:
+            return json.JSONEncoder.default(self, obj)
 
 class HeeMapping(Blueprint):
     """
     Used to declare the request path, each controller needs to create an object of this type
     """
+
     def __init__(self, prefix: str):
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 2)
         submod_name = calframe[1][0].f_locals['__name__']
         super(HeeMapping, self).__init__(name=submod_name, import_name=submod_name, url_prefix=prefix)
 
+
 class HeeWebApplication(HeeRestApplication):
     def __init__(self):
         self.initialize_default_dir()
         super(HeeWebApplication, self).__init__()
-
 
     def initialize_default_dir(self):
         """

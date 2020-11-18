@@ -4,6 +4,7 @@ import os
 import shutil
 import sys
 
+
 # check and install flask
 try:
     import flask
@@ -61,9 +62,20 @@ if not os.path.exists("config/app.conf"):
     fullpath = os.path.join(pkgdir, 'app_template.conf')
     shutil.copy(fullpath, 'config/app.conf')
 
-# dynamic module
-if config.has_section('mybatis'):
-    print("mybatis 有的")
+# all dynamic module
+#
+print("Hee starts check dynamic module...")
+if config.has_section('MYSQL'):
+    print("MYSQL config section exists, load dependencies.")
+    try:
+        import pymysql
+    except:
+        os.system('pip install pymysql')
+    try:
+        import dbutils
+    except:
+        os.system('pip install dbutils')
+    print("MYSQL dynamic module initialized.")
 
 
 from hee.heeframework import HeeRestApplication

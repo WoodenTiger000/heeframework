@@ -6,5 +6,6 @@ include hee/app_template.conf
 include hee/log4p_template.json
 include hee/heeframework.py
 include hee/__init__.py
+include hee/*.py
 
 recursive-include MES/Utility *.mmdb

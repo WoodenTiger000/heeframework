@@ -1,12 +1,12 @@
-### **【HeeFramework】**
+# **【HeeFramework】**
 ***
 
 
-#### 1 概要  
+## 1 概要  
 HeeFramewrok（以下简称Hee） 是一款面向模块的低侵入式的IOC容器框架，为解决构建企业级复杂软件而创建的。
 Hee提供了一个容器来管理各个组件对象的生命周期和组件依赖性，并定义了一个新的模块组织方式。
 
-#### 2 主要特征及功能  
+## 2 主要特征及功能  
 **1. 使用简单**  
     通过之后"使用说明章节"中的案例，您将会发现很快您就能上手使用该框架，并喜欢上它。
    
@@ -29,20 +29,32 @@ Hee提供了一个容器来管理各个组件对象的生命周期和组件依�
 **7. 控制反转**  
     Hee通过控制反转技术自动注入对象依赖，包括单向依赖的和双向依赖。不需要您查找或者去创建您所需要的依赖，
 
-**8. 内置对象**  
+**8. 内置组件**  
     Hee会为每个类自动创建通用的对象，比如说log对象。
 
 **9. 在运行之前自动检查和导入依赖项 (TODO)**  
     Hee在启动时会自动扫描所框架自身依赖的模块，并自动导入。当然，导入哪些取决于您将要用到框架的哪些功能。
-    
-#### 3 使用指南  
-##### 3.1 安装Hee
+
+**10. 提供Web抽象层，简化Restful应用和Web应用的构建**  
+    Hee启动时会给需要的控制器组件自动注入web对象，web对象可支持大多数的web操作，比如文件上传、下载。
+
+## 3 涉及概念
+### 3.1 动态模块
+   动态模块是一种按需加载的内置模块，如果你在配置文件中出现了该模块的相关段落，则自动下载该动态模块的依赖，并初始化该动态模块。  
+   如果没有配置该模块，则不会加载该模块的任何内容  
+
+ 
+## 3 快速开始（小试牛刀）  
+### 3.1 安装Hee
 ````
     pip install hee-framework -i https://pypi.org/simple
 ````
 
-##### 3.2 Hee应用
-###### 3.2.1 如何创建一个Hee普通应用
+### 3.2 Hee应用
+#### 3.2.1 Hee IOC普通应用（HeeApplication）  
+Hee IOC普通应用即为一个普通的应用程序，它与原生的Python程序的不同点在于提供了模块自动发现，对象容器和基于控制反转的依赖注入能力。
+当然，普通应用亦能够使用Hee提供的丰富内置组件。
+
 在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入一下内容。
 ````python
 from hee import HeeApplication
@@ -57,10 +69,10 @@ if __name__ == '__main__':
     # your logic
     input()   # replace with other
 ````
-写完之后，执行 python3 application.py 即可启动该项目。
+完成之后，执行 python3 application.py 即可启动该项目。
 
 
-###### 3.2.2. 如何创建一个Hee Restful应用  
+#### 3.2.2. Hee Restful应用(HeeRestApplication)  
 在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入一下内容。
 ````python
 from hee import HeeRestApplication
@@ -73,15 +85,15 @@ if __name__ == '__main__':
     app = Application()
     app.start()
 ````
-写完之后，python3 application.py 即可启动该项目
+写完之后，python3 application.py 即可启动该项目。
+启动之后会自动生成配置目录：config/app.conf，config/log4p.json。  
 
-
-###### 3.2.3 如何创建一个调度批处理应用  
+#### 3.2.3. Hee Web应用(HeeWebApplication)  
 在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入一下内容。
 ````python
-from hee import HeeScheduledApplication
+from hee import HeeWebApplication
 
-class Application(HeeScheduledApplication):
+class Application(HeeWebApplication):
     # your code
     pass
 
@@ -89,11 +101,29 @@ if __name__ == '__main__':
     app = Application()
     app.start()
 ````
-写完之后，python3 application.py 即可启动该项目
+写完之后，python3 application.py 即可启动该项目。
+启动之后会自动生成配置目录：config/app.conf，config/log4p.json。  
 
-##### 3.3 控制器
-控制器是指处理来自互联网的http请求的第一道屏障，主要用于各种控制能力，包括参数认证控制、权限控制、校验控制、流程控制，返回控制等等。
-##### 3. 如何创建一个控制器模块
+
+#### 3.2.4 如何创建一个调度批处理应用(HeeSchedApplication)  
+在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入一下内容。
+````python
+from hee import HeeSchedApplication
+
+class Application(HeeSchedApplication):
+    # your code
+    pass
+
+if __name__ == '__main__':
+    app = Application()
+    app.start()
+````
+完成之后，python3 application.py 即可启动该项目
+
+### 3.3 控制器
+当你构建的是一个HeeRestApplication或者HeeWebApplication时，控制器将会是一个必不可少的子模块组件。
+控制器是处理来自互联网的http请求的第一道屏障，主要用于各种控制能力，包括参数认证控制、权限控制、校验控制、流程控制，返回控制等等。
+#### 3.3.1 如何创建一个控制器模块
 在您的根目录下创建一个controller文件夹，创建 foo_controller.py 文件，并写入一下内容。控制器将会被自动注册到应用程序，您无需任何其他操作。
 ````python
 from hee import HeeMapping
@@ -128,8 +158,9 @@ class FooService:
         log.info("do my business!")
         return "my business done"
 ````
-注意1：FooService类有一个@component装饰，这是一个非常重要的装饰器，表示容器会创建一个component并交由容器进行管理。
-注意2：该模块有一个为None的log成员，前面提到过，改log是Hee内置对象，Hee会将其自动注入，所有不用担心它的值为None。
+提示1：FooService类有一个@component装饰，这是一个非常重要的装饰器，表示容器会创建一个component并交由容器进行管理。
+提示2：该模块有一个为None的log成员，前面提到过，改log是Hee内置对象，Hee会将其自动注入，所有不用担心它的值为None。
+提示3：我们可以将组件按职责划分为不同的层级。
 
 #### 3.5 控制反转
 控制反转的核心思想是，你不要从容器查找或者自己去创建依赖的对象，而是通过被动的方式传递给你。
@@ -160,11 +191,40 @@ OK, 修改完成之后，我们重启应用，然后浏览器中输入：http://
 2020-11-13 15:02:27,562 - foo_service.py line+18 - INFO - do my business!
 2020-11-13 15:02:27,563 - foo_controller.py line+21 - INFO - my business done
 ````
-再次恭喜你，你成功了！
+再次恭喜你，成功完成了初试牛刀！
 
 
+## 4 开发指南  
+### 4.1 构建一个Web应用
+#### 4.1.1. Hee Web应用(HeeWebApplication)  
+1. 创建启动程序
+````python
+from hee import HeeWebApplication
 
-#### 3 升级计划  
-1. dynamic framework module support [like mybatis]
-2. dynamic framework module support [kafka]
-3. dynamic framework module support [redis]
+class Application(HeeWebApplication):
+    # your code
+    pass
+
+if __name__ == '__main__':
+    app = Application()
+    app.start()
+````
+写完之后，python3 application.py 即可启动该项目。
+启动之后会自动生成配置目录：config/app.conf，config/log4p.json。  
+
+
+#### 4.2 构建一个Restful应用  
+#### 4.2.1. Hee Restful应用(HeeRestApplication)  
+TODO
+
+
+#### 4.3 构建一个调用应用  
+TODO
+
+#### 4.4 构建一个自定义的普通应用
+TODO
+
+#### 5 升级计划  
+1. builtin dynamic framework module support [like mybatis]
+2. builtin dynamic framework module support [kafka]
+3. builtin dynamic framework module support [redis]
