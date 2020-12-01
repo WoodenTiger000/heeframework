@@ -4,7 +4,6 @@ import os
 import shutil
 import sys
 
-
 # check and install flask
 try:
     import flask

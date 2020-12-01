@@ -6,15 +6,18 @@
 from abc import abstractmethod
 
 
-class DB:
+class RDB:
     @abstractmethod
-    def select_all(self, sql, params=None):
+    def select_all(self, sql: str, params: dict):
         pass
 
     @abstractmethod
-    def select_one(self, sql, params=None):
+    def select_one(self, sql: str, params: dict):
         pass
 
     @abstractmethod
-    def execute(self, sql, params=None):
+    def execute(self, sql: str, params: dict):
        pass
+
+    def get_conn(self):
+        pass

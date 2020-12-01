@@ -3,7 +3,7 @@
 # HeeFramework
 # @Time    : 2020/11/10 15:06
 # @Author  : yanhu.zou
-__version__ = "1.0.23"
+__version__ = "1.0.24"
 
 import datetime
 import json
@@ -52,19 +52,24 @@ import inspect
 import log4p
 from flask import Flask, Blueprint, request, send_from_directory
 
-from heeconfig import Config
+from hee.heeconfig import Config
 
 print("heeframework start starts to initialize.")
 
 logger_ = log4p.GetLogger(logger_name=__name__, logging_level="INFO", config="config/log4p.json")
 log_ = logger_.logger
 
+# Import dependencies required by built-in modules before framework initialization.
+config = Config()
+if config.has_section('MYSQL'):
+    from hee.rdb_mysql import DbMySQL
+
+
 
 class HeeContainer:
     """
     submod and object container.
     """
-
     def __init__(self):
         # all submods
         self.submods: dict = {}
@@ -87,7 +92,6 @@ class Hee:
     """
     Facade of Hee
     """
-
     def __init__(self, hee_container):
         super(Hee, self).__init__()
         self.__container = hee_container
@@ -106,7 +110,6 @@ class HeeApplication:
     Building restful applications easily
     The user needs to create a class inherited from this class and execute the start method in the main function to start the application
     """
-
     def __init__(self):
         # Hee container
         self.hee_container = HeeContainer()
@@ -322,6 +325,24 @@ class HeeRestApplication(HeeApplication):
         log_.info("application is starting...")
         self.heeFlask.run(host=host, port=port)
 
+# Convert an object into a dict
+def object_to_dict(obj):
+    if isinstance(obj, dict):
+        return obj
+    else:
+        dict_data = {}
+        for name in dir(obj):
+            value = getattr(obj, name)
+            if not name.startswith('__') and not callable(value) and not name.startswith('_'):
+                dict_data[name] = value
+        return dict_data
+
+# Convert a dict to an object
+def dict_to_object(d: dict, t: type):
+    obj = t()
+    obj.__dict__.update(dict)
+    return obj
+
 
 class Web:
     """
@@ -337,10 +358,28 @@ class Web:
     def request_data(self):
         return request.data
 
+    def request_json(self):
+        """
+        请求json数据
+        :return:
+        """
+        return json.loads(request.data)
+
     def request_files(self):
+        """
+        获取上传文件
+        :return:
+        """
         return request.files
 
-    def download(self, directory: str, file: str, **options):
+    def resp_download(self, directory: str, file: str, **options):
+        """
+        响应返回下载文件
+        :param directory:
+        :param file:
+        :param options:
+        :return:
+        """
         abs_download_dir = os.path.abspath(directory)
         # log_.info("abs_download_file: " + abs_download_dir)
         if not os.path.exists(abs_download_dir):
@@ -348,23 +387,39 @@ class Web:
         else:
             return send_from_directory(abs_download_dir, file, **options)
 
-    def static_file(self, filename: str):
+    def resp_static_file(self, filename: str):
         """
-        根路径
+        响应返回静态文件
         :param filename:
         :return:
         """
         return self.flask.send_static_file(filename)
 
-    def json(self, data):
-        return json.dumps(data, cls=DateEncoder)
+    def resp_json(self, data):
+        """
+        响应返回json数据。
+            1. 自动将 datetime 类型数据转为yyyy-MM-dd HH:mm:ss类型。
+            2. 自动将用户自定义类的对象转成json字符串，但以下划线打头的属性不进行转换。
+        :param data:
+        :return:
+        """
+        # 如果是用户自定义对象，则转成dict再序列化
+        if str(type(data)).__contains__('.'):
+            dict_data = object_to_dict(data)
+            return json.dumps(dict_data, cls=HeeJsonEncoder)
+        # 如果非用户自定义对象，则直接进行转换
+        else:
+            return json.dumps(data, cls=HeeJsonEncoder)
 
-class DateEncoder(json.JSONEncoder):
+# Hee Json Encoder
+class HeeJsonEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
             return obj.strftime("%Y-%m-%d %H:%M:%S")
         else:
             return json.JSONEncoder.default(self, obj)
+
+
 
 class HeeMapping(Blueprint):
     """

@@ -12,3 +12,7 @@ python3 setup.py sdist
 
 第二步：上传到PYPI (注意版本号)
 twine upload dist/heeframework-1.0.22.tar.gz
+
+
+
+使用：pip install heeframework==1.0.23 -i https://pypi.org/simple

@@ -1,6 +1,6 @@
 # **【HeeFramework】**
 ***
-
+！先放到监控项目里面写
 
 ## 1 概要  
 HeeFramewrok（以下简称Hee） 是一款面向模块的低侵入式的IOC容器框架，为解决构建企业级复杂软件而创建的。
@@ -55,7 +55,7 @@ Hee提供了一个容器来管理各个组件对象的生命周期和组件依�
 Hee IOC普通应用即为一个普通的应用程序，它与原生的Python程序的不同点在于提供了模块自动发现，对象容器和基于控制反转的依赖注入能力。
 当然，普通应用亦能够使用Hee提供的丰富内置组件。
 
-在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入一下内容。
+在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入以下内容。
 ````python
 from hee import HeeApplication
 
@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
 
 #### 3.2.2. Hee Restful应用(HeeRestApplication)  
-在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入一下内容。
+在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入以下内容。
 ````python
 from hee import HeeRestApplication
 
@@ -89,7 +89,7 @@ if __name__ == '__main__':
 启动之后会自动生成配置目录：config/app.conf，config/log4p.json。  
 
 #### 3.2.3. Hee Web应用(HeeWebApplication)  
-在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入一下内容。
+在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入以下内容。
 ````python
 from hee import HeeWebApplication
 
@@ -106,7 +106,7 @@ if __name__ == '__main__':
 
 
 #### 3.2.4 如何创建一个调度批处理应用(HeeSchedApplication)  
-在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入一下内容。
+在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入以下内容。
 ````python
 from hee import HeeSchedApplication
 
@@ -124,7 +124,7 @@ if __name__ == '__main__':
 当你构建的是一个HeeRestApplication或者HeeWebApplication时，控制器将会是一个必不可少的子模块组件。
 控制器是处理来自互联网的http请求的第一道屏障，主要用于各种控制能力，包括参数认证控制、权限控制、校验控制、流程控制，返回控制等等。
 #### 3.3.1 如何创建一个控制器模块
-在您的根目录下创建一个controller文件夹，创建 foo_controller.py 文件，并写入一下内容。控制器将会被自动注册到应用程序，您无需任何其他操作。
+在您的根目录下创建一个controller文件夹，创建 foo_controller.py 文件，并写入以下内容。控制器将会被自动注册到应用程序，您无需任何其他操作。
 ````python
 from hee import HeeMapping
 
@@ -195,8 +195,8 @@ OK, 修改完成之后，我们重启应用，然后浏览器中输入：http://
 
 
 ## 4 开发指南  
-### 4.1 构建一个Web应用
-#### 4.1.1. Hee Web应用(HeeWebApplication)  
+### 4.1 构建一个WEB应用
+#### 4.1.1. HEE WEB应用(HeeWebApplication)  
 1. 创建启动程序
 ````python
 from hee import HeeWebApplication
@@ -224,7 +224,28 @@ TODO
 #### 4.4 构建一个自定义的普通应用
 TODO
 
-#### 5 升级计划  
-1. builtin dynamic framework module support [like mybatis]
-2. builtin dynamic framework module support [kafka]
-3. builtin dynamic framework module support [redis]
+#### 5 常见问题  
+本章节主要介绍介绍开发过程中极其常见的问题以及对应的解决方案，方便研发迅速定位问题并解决问题。
+  
+5.1 经过核对，SQL的命名参数是足够的，却报参数不够的异常  
+错误信息如下
+````
+final_sql = sql % params  
+TypeError: not enough arguments for format string
+````
+
+解决：
+大概率是因为sql占位参数的小括号写成大括号了，例如%{name}，应该写为%(name)，一眼过去差不多，不容易发现。
+
+
+
+
+
+
+
+
+
+
+
+
+
