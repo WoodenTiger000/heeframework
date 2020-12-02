@@ -3,7 +3,7 @@
 # HeeFramework
 # @Time    : 2020/11/10 15:06
 # @Author  : yanhu.zou
-__version__ = "1.0.24"
+__version__ = "1.0.26"
 
 import datetime
 import json
@@ -175,21 +175,21 @@ class HeeApplication:
          Finally, all modules are loaded into the context.
         """
         log_.info("scan path: %s " % path)
-
         # Determine if it is a path, process the sub-path recursively
         if os.path.isdir(path):
             for subpath in os.listdir(path):
+                log_.info("subpath: %s" % subpath)
                 if subpath == './hee':
-                    return
+                    continue
 
                 if subpath.endswith('__pycache__'):
-                    return
+                    continue
 
                 if subpath == 'static':
-                    return
+                    continue
 
                 if subpath == 'template':
-                    return
+                    continue
 
                 self.scan_and_load_submod(path + "/" + subpath)
 
@@ -226,6 +226,8 @@ class HeeApplication:
 
             # save submods
             self.hee_container.submods[submod_full_name] = submod
+        else:
+            log_.info("skip path: %s" % path)
 
     def instantiate_objects(self):
         """

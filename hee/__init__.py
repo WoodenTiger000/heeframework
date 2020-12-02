@@ -1,6 +1,4 @@
 import os
-
-
 import shutil
 import sys
 
@@ -9,21 +7,21 @@ try:
     import flask
 except:
     print('Can not find flask, start installing...')
-    os.system('pip install flask')
+    os.system('pip3 install flask')
 
 # check and install log4p
 try:
     import log4p
 except:
     print('Can not find log4p, start installing...')
-    os.system('pip install log4p')
+    os.system('pip3 install log4p')
 
 # check and install configparser
 try:
     import configparser
 except:
     print('Can not find configparser, start installing configparser...')
-    os.system('pip install configparser')
+    os.system('pip3 install configparser')
 
 # load configfile
 config = configparser.ConfigParser()
@@ -69,11 +67,11 @@ if config.has_section('MYSQL'):
     try:
         import pymysql
     except:
-        os.system('pip install pymysql')
+        os.system('pip3 install pymysql')
     try:
         import dbutils
     except:
-        os.system('pip install dbutils')
+        os.system('pip3 install dbutils')
     print("MYSQL dynamic module initialized.")
 
 
