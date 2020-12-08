@@ -233,11 +233,11 @@ TODO
 final_sql = sql % params  
 TypeError: not enough arguments for format string
 ````
-
 解决：
 大概率是因为sql占位参数的小括号写成大括号了，例如%{name}，应该写为%(name)，一眼过去差不多，不容易发现。
 
-
+5.1 查询报错 
+TypeError: can't multiply sequence by non-int of type 'str'
 
 
 
