@@ -1,27 +1,27 @@
 import os
 import shutil
 import sys
+import configparser
 
 # check and install flask
 try:
     import flask
 except:
     print('Can not find flask, start installing...')
-    os.system('pip3 install flask')
+    os.system('pip3 install flask==1.1.2')
 
 # check and install log4p
 try:
     import log4p
 except:
     print('Can not find log4p, start installing...')
-    os.system('pip3 install log4p')
+    os.system('pip3 install log4p==2019.7.13.3')
 
-# check and install configparser
 try:
-    import configparser
+    import apscheduler
 except:
-    print('Can not find configparser, start installing configparser...')
-    os.system('pip3 install configparser')
+    print('Can not find apscheduler, start installing apscheduler...')
+    os.system('pip3 install apscheduler==3.6.3')
 
 # load configfile
 config = configparser.ConfigParser()
@@ -74,6 +74,12 @@ if config.has_section('MYSQL'):
         os.system('pip3 install dbutils')
     print("MYSQL dynamic module initialized.")
 
+if config.has_section('HEEJOB'):
+    print("HEEJOB config section exists, load dependencies.")
+    try:
+        import apscheduler
+    except:
+        os.system('pip3 install apscheduler')
 
 from hee.heeframework import HeeRestApplication
 from hee.heeframework import HeeWebApplication

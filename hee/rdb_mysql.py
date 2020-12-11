@@ -36,7 +36,7 @@ class DbMySQL(RDB):
             maxusage=None,  # 一个链接最多被重复使用的次数，None表示无限制
             setsession=[],  # 开始会话前执行的命令列表。如：["set datestyle to ...", "set time zone ..."]
             ping=0,
-            # ping MySQL服务端，检查是否服务可用。# 如：0 = None = never, 1 = default = whenever it is requested, 2 = when a cursor is created, 4 = when a query is executed, 7 = always
+            # Ping MySQL服务端，检查是否服务可用。# 如：0 = None = never, 1 = default = whenever it is requested, 2 = when a cursor is created, 4 = when a query is executed, 7 = always
             host=host,
             port=port,
             user=user,
@@ -102,7 +102,6 @@ class DbMySQL(RDB):
             final_sql = self._build_sql(sql, params)
             log.info("final_sql: " + final_sql)
 
-            log.info("final_sql: " + final_sql)
             row = cursor.execute(final_sql)
             conn.commit()
             return row
@@ -115,10 +114,14 @@ class DbMySQL(RDB):
             return sql
 
         # TODO 时间关系，暂时先用replace的方式，另一种更高效的写法是通过对sql str中的字符进行遍历，
-        # 当遇到#和{时进行缓存，当遇到}时将参数值进行置换。
+        # TODO 当遇到#和{时进行缓存，当遇到}时将参数值进行置换。
+
+        # 转义单引号
         final_sql: str = sql
+
         for param_name in params:
             param_value = params[param_name]
+
             # int
             if isinstance(param_value, int) or isinstance(param_value, float):
                 final_sql = final_sql.replace('#{' + param_name + '}', param_value.__str__())
@@ -134,7 +137,10 @@ class DbMySQL(RDB):
                 final_sql = final_sql.replace('#{' + param_name + '}', '\"' + param_value.__str__() + '\"')
             # Other
             else:
-                final_sql = final_sql.replace('#{' + param_name + '}', '\'' + param_value.__str__() + '\'')
+                # 将参数中的单引号全部进行转义
+                param_value = param_value.__str__().replace("'", "''")
+                final_sql = final_sql.replace('#{' + param_name + '}', '\'' + param_value + '\'')
+
         return final_sql
 
     def get_conn(self):

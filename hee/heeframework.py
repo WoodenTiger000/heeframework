@@ -8,6 +8,10 @@ __version__ = "1.0.26"
 import datetime
 import json
 
+from apscheduler.executors.pool import ThreadPoolExecutor
+from apscheduler.jobstores.memory import MemoryJobStore
+from apscheduler.schedulers.background import BackgroundScheduler
+
 """
 HeeFramework
 
@@ -43,8 +47,6 @@ HeeFramework
 
 """
 
-import shutil
-import sys
 import os
 import importlib
 import inspect
@@ -87,7 +89,6 @@ class HeeContainer:
         if submod_name in self.submods:
             return self.submods[submod_name]
 
-
 class Hee:
     """
     Facade of Hee
@@ -120,6 +121,8 @@ class HeeApplication:
         # Config
         self.config = Config()
 
+        self.scheduler = None
+
         # dynami module MYSQL
         if self.config.has_section('MYSQL'):
             host_ = self.config.get_str('MYSQL', 'host')
@@ -143,6 +146,9 @@ class HeeApplication:
                 pool_idle=pool_idle_
             )
 
+        # init shedule
+        self.init_schedule()
+
         # Load all submods.
         log_.info('Start loading SubMod.')
         self.scan_and_load_submod('.')
@@ -159,8 +165,26 @@ class HeeApplication:
         # Build object dependencies
         self.build_bean_dependencies()
 
+        self.scheduler.start()
+
+
     def start(self):
         pass
+
+    def init_schedule(self):
+        # schedule
+        jobstores = {
+            'default': MemoryJobStore()
+        }
+        executors = {
+            'default': ThreadPoolExecutor(20)
+        }
+        job_defaults = {
+            'coalesce': False,
+            'max_instances': 2
+        }
+
+        self.scheduler = BackgroundScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults)
 
     def scan_and_load_submod(self, path):
         """
@@ -179,7 +203,7 @@ class HeeApplication:
         if os.path.isdir(path):
             for subpath in os.listdir(path):
                 log_.info("subpath: %s" % subpath)
-                if subpath == './hee':
+                if subpath == 'hee':
                     continue
 
                 if subpath.endswith('__pycache__'):
@@ -262,7 +286,7 @@ class HeeApplication:
         log_.info("Start to automatically inject dependencies into the submods.")
         for submod_name in self.hee_container.submods:
             submod = self.hee_container.submods[submod_name]
-            # print("submod: ", submod)
+            # 自定注入依赖到子模块
             members = inspect.getmembers(submod)
             for m in members:
                 if m[0] == '__annotations__':
@@ -272,8 +296,41 @@ class HeeApplication:
                         contained_object_name = var_type.__module__ + "." + var_type.__name__
                         if contained_object_name in self.hee_container.objects:
                             setattr(submod, var_name, self.hee_container.objects[contained_object_name])
-                            log_.info(
-                                "Auto inject [" + contained_object_name + "] into submod " + submod_name + " success.")
+                            log_.info("Auto inject [" + contained_object_name + "] into submod " + submod_name + " success.")
+
+
+            # 初始化所有的定时调度任务
+            submod = self.hee_container.submods[submod_name]
+            funs = inspect.getmembers(submod, inspect.isfunction)
+            for fun_info in funs:
+                if hasattr(fun_info[1], '__hee_job_enable__'):
+                    fun_name = fun_info[0]
+                    fun = fun_info[1]
+                    # 秒0~59 分 时 日 月 星期 年
+                    cron_info = fun.cron.split(" ")
+                    seconds = cron_info[0]
+                    minute = cron_info[1]
+                    hour = cron_info[2]
+                    day_of_month = cron_info[3]
+                    month = cron_info[4]
+                    day_of_week = '*'
+                    if len(cron_info) > 5:
+                        day_of_week = cron_info[5]
+                    year = '*'
+                    if len(cron_info) > 6:
+                        year = cron_info[6]
+
+                    self.scheduler.add_job(func=fun,
+                                           trigger='cron',
+                                           second=seconds,
+                                           minute=minute,
+                                           hour=hour,
+                                           day=day_of_month,
+                                           month=month,
+                                           day_of_week=day_of_week,
+                                           year=year
+                                           )
+                    log_.info("Job started, %s cron=%s %s %s %s %s %s %s", fun_name, seconds, minute, hour, day_of_month, month, day_of_week, year)
 
     def build_bean_dependencies(self):
         """
@@ -467,7 +524,7 @@ class HeeSchedApplication(HeeApplication):
         """
         if not os.path.exists("jobs/"):
             os.mkdir("jobs/")
-            log_.info("The static dir does not exists, create it.")
+            log_.info("The jobs dir does not exists, create it.")
 
 
 def component(cls):
@@ -477,3 +534,19 @@ def component(cls):
     """
     cls.hee_dependency_enable = True
     return cls
+
+
+def heejob(job_name, cron):
+    """
+    定时调度任务
+    :param job_name:
+    :param cron:
+    :return:
+    """
+    def decorate(f):
+        setattr(f, '__hee_job_enable__', True)
+        setattr(f, 'job_name', job_name)
+        setattr(f, 'cron', cron)
+        return f
+    return decorate
+
