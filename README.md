@@ -255,9 +255,10 @@ if __name__ == '__main__':
 ````
 1. 如果是pycharm，右键点击main目录，并将其设置为源码根目录
 执行python3 application.py 或直接在右键运行 application.py，然后刷新一下工程目录。
-你将会看到hee已经生成好了标准目录，以及配置文件等。
-your_project (PyCharm根目录)  
+你将会看到hee已经生成好了标准目录，以及配置文件等。  
+
 ````
+your_project (PyCharm根目录)    
 ┗main   
 　┗config  
 　　┗app.conf  
