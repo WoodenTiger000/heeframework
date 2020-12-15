@@ -332,7 +332,7 @@ class MonitorService:
 
 
 #### 4.5 编写数据访问层代码    
-数据库访问目前支持MySQL，使用前需要配置MySQL连接信息
+数据库访问目前支持MySQL，使用前需要配置MySQL连接信息  
 1 在app.conf配置
 ````
 [MYSQL]
