@@ -58,14 +58,14 @@ Hee提供了一个容器来管理各个组件对象的生命周期和组件依�
    如果没有配置该模块，则不会加载该模块的任何内容  
 
  
-## 3 快速开始（小试牛刀）  
-### 3.1 安装Hee
+## 4 快速开始（小试牛刀）  
+### 4.1 安装Hee
 ````
     pip3 install heeframework -i https://pypi.org/simple
 ````
 
-### 3.2 Hee应用
-#### 3.2.1 Hee IOC普通应用（HeeApplication）  
+### 4.2 Hee应用
+#### 4.2.1 Hee IOC普通应用（HeeApplication）  
 Hee IOC普通应用即为一个普通的应用程序，它与原生的Python程序的不同点在于提供了模块自动发现，对象容器和基于控制反转的依赖注入能力。
 当然，普通应用亦能够使用Hee提供的丰富内置组件。
 
@@ -86,24 +86,14 @@ if __name__ == '__main__':
 完成之后，执行 python3 application.py 即可启动该项目。
 
 
-#### 3.2.2. Hee Restful应用(HeeRestApplication)  
-在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入以下内容。
-````python
-from hee import HeeRestApplication
-
-class Application(HeeRestApplication):
-    # your code
-    pass
-
-if __name__ == '__main__':
-    app = Application()
-    app.start()
+#### 4.2.3. 创建一个Hee Web应用  
+在你的工程源码根路径下创建一个main/application.py(文件名不是固定的，你完全自己可以取名字)，
 ````
-写完之后，python3 application.py 即可启动该项目。
-启动之后会自动生成配置目录：config/app.conf，config/log4p.json。  
-
-#### 3.2.3. Hee Web应用(HeeWebApplication)  
-在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入以下内容。
+your_project (PyCharm根目录)    
+┗main
+　┗application.py   
+````
+然后写入以下内容:  
 ````python
 from hee import HeeWebApplication
 
@@ -116,28 +106,28 @@ if __name__ == '__main__':
     app.start()
 ````
 写完之后，python3 application.py 即可启动该项目。
-启动之后会自动生成配置目录：config/app.conf，config/log4p.json。  
-
-
-#### 3.2.4 如何创建一个调度批处理应用(HeeSchedApplication)  
-在你的工程源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)，然后写入以下内容。
-````python
-from hee import HeeSchedApplication
-
-class Application(HeeSchedApplication):
-    # your code
-    pass
-
-if __name__ == '__main__':
-    app = Application()
-    app.start()
+启动之后会自动生成以下目录：  
 ````
-完成之后，python3 application.py 即可启动该项目
+your_project (PyCharm根目录)    
+┗main   
+　┗config  
+　　┗app.conf  
+　　┗log4p.conf  
+　┗modules    
+　　 ┗controller  
+　　 ┗service  
+　　 ┗dao
+　┗static
+　　┗index.html
+　┗template
+　┗application.py    
+````
+基础框架搭建完成  。
 
-### 3.3 控制器
+### 4.3 编写控制器  
 当你构建的是一个HeeRestApplication或者HeeWebApplication时，控制器将会是一个必不可少的子模块组件。
 控制器是处理来自互联网的http请求的第一道屏障，主要用于各种控制能力，包括参数认证控制、权限控制、校验控制、流程控制，返回控制等等。
-#### 3.3.1 如何创建一个控制器模块
+#### 4.3.1 创建一个控制器模块
 在您的根目录下创建一个controller文件夹，创建 foo_controller.py 文件，并写入以下内容。控制器将会被自动注册到应用程序，您无需任何其他操作。
 ````python
 from hee import HeeMapping
@@ -152,7 +142,7 @@ def find():
 当以上完成后，像前面一样启动您的的Application，随后就可以在浏览器中输入：http://localhost:5000/foo/find，如果正确返回bar，恭喜您，您成功编写了您的第一个controller！
 
 
-##### 3.4 子模块
+##### 4.4 编写业务子模块
 在你HeeApplication所在的目录创建子文件夹service，service文件夹中创建的任何.py文件将会视为子模块(submod)，子模块将会自动导入容器进行管理。
 子模块会被Hee扫描，并加入Hee容器。
 我们现在在service目录创建一个foo_service.py，并写入以下内容: 
@@ -176,7 +166,7 @@ class FooService:
 提示2：该模块有一个为None的log成员，前面提到过，该log是Hee内置对象，Hee会将其自动注入，不需要对依赖进行手工查找。
 提示3：我们可以将组件按职责划分为不同的层级。
 
-#### 3.5 控制反转与依赖注入
+#### 4.5 控制反转与依赖注入
 控制反转的核心思想是，你不要从容器查找或者自己去创建依赖的对象，而是通过被动的方式传递给你。
 这里我们让Hee给FooController自动注入FooService的实例。我们修改foo_controller为以下：
 ````python
@@ -266,7 +256,6 @@ def find():
     return "success"
 ````   
     
-
 **读取请求参数**    
   直接在方法中编写： 
   ````  
@@ -311,7 +300,7 @@ def find():
 #### 4.2 构建一个Restful应用  
 #### 4.2.1. Hee Restful应用(HeeRestApplication)  
 构建web应用与restful应用方法一致，不同的是继承于HeeRestApplication，rest应用不会自动创建static和template目录。
-
+  
 
 #### 4.3 构建一个定时调度应用  
 步骤同上，然后在modules目录下创建一个jobs目录来存放所有的定时调度任务模块，创建一个test_job.py文件，然后写入以下内容。
