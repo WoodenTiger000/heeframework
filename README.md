@@ -162,9 +162,9 @@ class FooService:
         log.info("do my business!")
         return "my business done"
 ````
-提示1：FooService类有一个@component装饰，这是一个非常重要的装饰器，表示容器会创建一个component并交由容器进行管理。
-提示2：该模块有一个为None的log成员，前面提到过，该log是Hee内置对象，Hee会将其自动注入，不需要对依赖进行手工查找。
-提示3：我们可以将组件按职责划分为不同的层级。
+提示1：FooService类有一个@component装饰，这是一个非常重要的装饰器，表示容器会创建一个component并交由容器进行管理。  
+提示2：该模块有一个为None的log成员，前面提到过，该log是Hee内置对象，Hee会将其自动注入，不需要对依赖进行手工查找。  
+提示3：我们可以将组件按职责划分为不同的层级。  
 
 #### 4.5 控制反转与依赖注入
 控制反转的核心思想是，你不要从容器查找或者自己去创建依赖的对象，而是通过被动的方式传递给你。
@@ -200,7 +200,7 @@ OK, 修改完成之后，我们重启应用，然后浏览器中输入：http://
 
 ## 4 开发指南  
 ### 4.1 构建一个WEB应用
-**编写入口应用程序入口**  
+**1 编写入口应用程序入口**  
 新建一个工程，并新建一个源码目录，创建一个application.py的文件  
 ````
 your_project (PyCharm根目录)  
@@ -218,7 +218,7 @@ if __name__ == '__main__':
     app = Application()
     app.start()
 ````
-1 如果是pycharm，右键点击main目录，并将其设置为源码根目录
+如果是pycharm，右键点击main目录，并将其设置为源码根目录
 执行python3 application.py 或直接在右键运行 application.py，然后刷新一下工程目录。
 你将会看到hee已经生成好了标准目录，以及配置文件等。  
 
@@ -239,7 +239,7 @@ your_project (PyCharm根目录)
 ````
 这是hee推荐的标准目录，随后就可以将控制器写在controller中，业务逻辑写在service中，数据访问层写在dao中。   
 
-**编写控制器**   
+**2 编写控制器**   
     在modules/controller下创建test_controller.py文件，然后在其中初始化HeeMapping和一个接口，如下：   
  ````
 from logging import Logger
@@ -256,29 +256,29 @@ def find():
     return "success"
 ````   
     
-**读取请求参数**    
+**3 读取请求参数**    
   直接在方法中编写： 
   ````  
   params = web.request_params()
   ````  
 
-**读取json请求数据格式**
+**4 读取json请求数据格式**
   ````  
   data = web.request_json()
   ````  
 
 
-**读取文本数据**
+**5 读取文本数据**
   ````  
    data = web.request_data()
   ````  
 
-**文件上传**   
+**6 文件上传**   
   ````  
     files = web.request_files()
   ````  
 
-**用户对象以json格式返回**
+**7 用户对象以json格式返回**
   ````  
   @mapping.route("/find")
   def find():
@@ -287,14 +287,12 @@ def find():
   ````  
 
 
-**返回静态文件**  
+**8 返回静态文件**  
   ````  
     @mapping.route("/find")
     def find():
         return web.resp_static_file("/static/home.html")
   ````  
-
-
 
 
 #### 4.2 构建一个Restful应用  
@@ -312,6 +310,54 @@ def test_job():
 ````
 启动application.py。
 
+#### 4.4 编写业务层代码  
+````python
+from logging import Logger
+
+from hee.rdb import RDB
+from hee import component
+from modules.dao.test_dao import TestDao
+
+log: Logger = None  # 自动注入
+dao: TestDao = None      # 自动注入
+db: RDB = None  # 自动注入
+
+@component
+class MonitorService:
+
+    def find(self, mdata):
+        # 查询原有数据
+       dao.test_select(mdata.entity, mdata.node_code)
+````
+
+
+#### 4.5 编写数据访问层代码    
+
+````python
+from hee.rdb import RDB
+from hee import component
+
+db: RDB = None   # 自动注入
+
+@component
+class TestDao:
+    def __init__(self):
+        pass
+
+    def test_select(self, entity, node_code):
+        sql: str = """
+                    select * 
+                    from monitor_data 
+                    where entity=#{entity} 
+                    and node_code=#{node_code}
+                    """
+
+        return db.select_one(sql, {
+            "entity": entity,
+            "node_code": node_code}
+        )
+
+````  
 
 
 #### 5 常见问题  
