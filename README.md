@@ -210,50 +210,22 @@ OK, 修改完成之后，我们重启应用，然后浏览器中输入：http://
 
 ## 4 开发指南  
 ### 4.1 构建一个WEB应用
-1. 创建启动程序
-````python
-from hee import HeeWebApplication
-
-class Application(HeeWebApplication):
-    # your code
-    pass
-
-if __name__ == '__main__':
-    app = Application()
-    app.start()
-````
-写完之后，python3 application.py 即可启动该项目。  
-启动之后会自动生成配置目录：config/app.conf，config/log4p.json。  
-1 编写控制器   
-
-2 读取请求参数  
-
-3 读取json请求数据格式，并将用户自定义对象转为json格式返回  
-
-4 文件上传   
-
-5 返回静态文件  
-
-
-
-#### 4.2 构建一个Restful应用  
-#### 4.2.1. Hee Restful应用(HeeRestApplication)  
-1. 编写入口应用程序入口
+**编写入口应用程序入口**
 新建一个工程，并新建一个源码目录，创建一个application.py的文件  
 your_project (PyCharm根目录)  
 ┗main  
   　┗application.py
 ````python
-from hee import HeeRestApplication
+from hee import HeeWebApplication
 
-class Application(HeeRestApplication):
+class Application(HeeWebApplication):
     pass
 
 if __name__ == '__main__':
     app = Application()
     app.start()
 ````
-1. 如果是pycharm，右键点击main目录，并将其设置为源码根目录
+1 如果是pycharm，右键点击main目录，并将其设置为源码根目录
 执行python3 application.py 或直接在右键运行 application.py，然后刷新一下工程目录。
 你将会看到hee已经生成好了标准目录，以及配置文件等。  
 
@@ -269,11 +241,74 @@ your_project (PyCharm根目录)
 　　 ┗dao  
 　┗application.py    
 ````
-这是hee推荐的标准目录，随后就可以将控制器写在controller中，业务逻辑写在service中，数据访问层写在dao中。
+这是hee推荐的标准目录，随后就可以将控制器写在controller中，业务逻辑写在service中，数据访问层写在dao中。   
+
+**编写控制器**   
+    在modules/controller下创建test_controller.py文件，然后在其中初始化HeeMapping和一个接口，如下：   
+ ````
+from logging import Logger
+
+from hee import HeeMapping
+from hee.heeframework import Web
+
+mapping = HeeMapping("/test")
+web: Web = None   # 自动注入
+log: Logger = None  # 自动注入测试
+
+@mapping.route("/find")
+def find():
+    return "success"
+````   
+    
+
+**读取请求参数**    
+  直接在方法中编写： 
+  ````  
+  params = web.request_params()
+  ````  
+
+**读取json请求数据格式**
+  ````  
+  data = web.request_json()
+  ````  
 
 
-#### 4.3 构建一个调用应用  
-前面步骤同上，然后在modules目录下创建一个jobs目录来存放所有的定时调度任务模块，创建一个test_job.py文件，然后写入以下内容。
+**读取文本数据**
+  ````  
+   data = web.request_data()
+  ````  
+
+**文件上传**   
+  ````  
+    files = web.request_files()
+  ````  
+
+**用户对象以json格式返回**
+  ````  
+  @mapping.route("/find")
+  def find():
+    data = MyObject()
+    return web.resp_json(data)
+  ````  
+
+
+**返回静态文件**  
+  ````  
+    @mapping.route("/find")
+    def find():
+        return web.resp_static_file("/static/home.html")
+  ````  
+
+
+
+
+#### 4.2 构建一个Restful应用  
+#### 4.2.1. Hee Restful应用(HeeRestApplication)  
+
+
+
+#### 4.3 构建一个定时调度应用  
+步骤同上，然后在modules目录下创建一个jobs目录来存放所有的定时调度任务模块，创建一个test_job.py文件，然后写入以下内容。
 
 ````python
 @heejob(job_name="测试job", cron="0/5 * * * * *")
@@ -282,7 +317,6 @@ def test_job():
 ````
 启动application.py。
 
-#### 4.4 构建一个调用应用  
 
 
 #### 5 常见问题  
