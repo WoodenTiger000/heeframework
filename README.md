@@ -210,11 +210,14 @@ OK, 修改完成之后，我们重启应用，然后浏览器中输入：http://
 
 ## 4 开发指南  
 ### 4.1 构建一个WEB应用
-**编写入口应用程序入口**
+**编写入口应用程序入口**  
 新建一个工程，并新建一个源码目录，创建一个application.py的文件  
+````
 your_project (PyCharm根目录)  
 ┗main  
   　┗application.py
+````
+
 ````python
 from hee import HeeWebApplication
 
@@ -238,7 +241,10 @@ your_project (PyCharm根目录)
 　┗modules    
 　　 ┗controller  
 　　 ┗service  
-　　 ┗dao  
+　　 ┗dao
+　┗static
+　　┗index.html
+　┗template
 　┗application.py    
 ````
 这是hee推荐的标准目录，随后就可以将控制器写在controller中，业务逻辑写在service中，数据访问层写在dao中。   
@@ -304,7 +310,7 @@ def find():
 
 #### 4.2 构建一个Restful应用  
 #### 4.2.1. Hee Restful应用(HeeRestApplication)  
-
+构建web应用与restful应用方法一致，不同的是继承于HeeRestApplication，rest应用不会自动创建static和template目录。
 
 
 #### 4.3 构建一个定时调度应用  
