@@ -3,7 +3,7 @@
 # HeeFramework
 # @Time    : 2020/11/10 15:06
 # @Author  : yanhu.zou
-__version__ = "1.0.26"
+__version__ = "1.0.27"
 
 import datetime
 import json
@@ -181,7 +181,7 @@ class HeeApplication:
         }
         job_defaults = {
             'coalesce': False,
-            'max_instances': 2
+            'max_instances': 1
         }
 
         self.scheduler = BackgroundScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults)

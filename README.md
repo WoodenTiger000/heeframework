@@ -150,22 +150,6 @@ def find():
     return "bar"
 ````
 当以上完成后，像前面一样启动您的的Application，随后就可以在浏览器中输入：http://localhost:5000/foo/find，如果正确返回bar，恭喜您，您成功编写了您的第一个controller！
-#### 3.3.2 读取参数  
-TODO 
-
-
-
-#### 3.3.2 读取和返回json数据  
-TODO
-
-#### 3.3.3 上传文件  
-TODO
-
-#### 3.3.3 下载文件  
-TODO
-
-#### 3.3.3 返回静态文件
-TODO
 
 
 ##### 3.4 子模块
@@ -226,7 +210,6 @@ OK, 修改完成之后，我们重启应用，然后浏览器中输入：http://
 
 ## 4 开发指南  
 ### 4.1 构建一个WEB应用
-#### 4.1.1. HEE WEB应用(HeeWebApplication)  
 1. 创建启动程序
 ````python
 from hee import HeeWebApplication
@@ -239,25 +222,84 @@ if __name__ == '__main__':
     app = Application()
     app.start()
 ````
-写完之后，python3 application.py 即可启动该项目。
+写完之后，python3 application.py 即可启动该项目。  
 启动之后会自动生成配置目录：config/app.conf，config/log4p.json。  
+1 编写控制器   
+
+2 读取请求参数  
+
+3 读取json请求数据格式，并将用户自定义对象转为json格式返回  
+
+4 文件上传   
+
+5 返回静态文件  
+
 
 
 #### 4.2 构建一个Restful应用  
 #### 4.2.1. Hee Restful应用(HeeRestApplication)  
-TODO
+1. 编写入口应用程序入口
+新建一个工程，并新建一个源码目录，创建一个application.py的文件  
+your_project (PyCharm根目录)  
+┗main  
+  　┗application.py
+````python
+from hee import HeeRestApplication
+
+class Application(HeeRestApplication):
+    pass
+
+if __name__ == '__main__':
+    app = Application()
+    app.start()
+````
+1. 如果是pycharm，右键点击main目录，并将其设置为源码根目录
+执行python3 application.py 或直接在右键运行 application.py，然后刷新一下工程目录。
+你将会看到hee已经生成好了标准目录，以及配置文件等。
+your_project (PyCharm根目录)  
+````
+┗main   
+　┗config  
+　　┗app.conf  
+　　┗log4p.conf  
+　┗modules    
+　　 ┗controller  
+　　 ┗service  
+　　 ┗dao  
+　┗application.py    
+````
+这是hee推荐的标准目录，随后就可以将控制器写在controller中，业务逻辑写在service中，数据访问层写在dao中。
 
 
 #### 4.3 构建一个调用应用  
-TODO
+前面步骤同上，然后在modules目录下创建一个jobs目录来存放所有的定时调度任务模块，创建一个test_job.py文件，然后写入以下内容。
 
-#### 4.4 构建一个自定义的普通应用
-TODO
+````python
+@heejob(job_name="测试job", cron="0/5 * * * * *")
+def test_job():
+    print('hello')
+````
+启动application.py。
+
+#### 4.4 构建一个调用应用  
+
 
 #### 5 常见问题  
-本章节主要介绍介绍开发过程中极其常见的问题以及对应的解决方案，方便研发迅速定位问题并解决问题。
-  
+本章节主要介绍介绍开发过程中极其常见的问题以及对应的解决方案，方便研发迅速定位问题并解决问题。  
+1. 注入内建对象log, config时，发现注入不成功为None  
+    这个问题一般在使用pycharm开发时出现，pycharm会将工程的顶级目录作为源码根目录，  
+    
+    一般如果在一个组件服务(@component注解的对象)中不能够  
 
+2. 定时job配置成功后发现并不运行  
+    一个可能的原因是你写的模块中存在一个属性，该属性的名字与job方法的名字重复，举例：  
+````python
+test_job: AlarmService = 123
+
+@heejob(job_name="测试job", cron="0/5 * * * * *")
+def test_job():
+    print('hello')
+````    
 
 
 
