@@ -332,7 +332,21 @@ class MonitorService:
 
 
 #### 4.5 编写数据访问层代码    
+数据库访问目前支持MySQL，使用前需要配置MySQL连接信息
+1 在app.conf配置
+````
+[MYSQL]
+host=127.0.0.1
+port=3306
+user=root
+pass=123456
+db=ambition
+pool_max=1000
+pool_init=5
+pool_idle=5
+````
 
+2 编写数据访问
 ````python
 from hee.rdb import RDB
 from hee import component
