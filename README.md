@@ -86,13 +86,16 @@ if __name__ == '__main__':
 
 
 #### 5.2.3. 创建一个Hee Web应用  
-在你的工程源码根路径下创建一个main/application.py(文件名不是固定的，你完全自己可以取名字)，
+在工程下的源码根路径下创建一个application.py(文件名不是固定的，你完全自己可以取名字)。  
+
+目录结构：
 ````
 your_project (PyCharm根目录)    
 ┗main
 　┗application.py   
 ````
-然后写入以下内容:  
+
+application.py文件内容:  
 ````python
 from hee import HeeWebApplication
 
@@ -128,6 +131,16 @@ your_project (PyCharm根目录)
 控制器是处理来自互联网的http请求的第一道屏障，主要用于各种控制能力，包括参数认证控制、权限控制、校验控制、流程控制，返回控制等等。
 #### 5.3.1 创建一个控制器模块
 在您的根目录下创建一个controller文件夹，创建 foo_controller.py 文件，并写入以下内容。控制器将会被自动注册到应用程序，您无需任何其他操作。
+目录结构：
+````
+your_project (PyCharm根目录)    
+┗main
+　┗controller
+　　┗foo_controller.py
+　┗application.py   
+````
+
+foo_controller.py文件内容
 ````python
 from hee import HeeMapping
 
@@ -138,7 +151,7 @@ def find():
     print("finding bar!")
     return "bar"
 ````
-当以上完成后，像前面一样启动您的的Application，随后就可以在浏览器中输入：http://localhost:5000/foo/find，如果正确返回bar，恭喜您，您成功编写了您的第一个controller！
+当以上完成后，像之前一样启动您的的Application，随后就可以在浏览器中输入：http://localhost:5000/foo/find ，如果正确返回bar，恭喜您，您成功编写了您的第一个controller！
 
 
 ##### 5.4 编写业务子模块
@@ -194,7 +207,7 @@ OK, 修改完成之后，我们重启应用，然后浏览器中输入：http://
 2020-11-13 15:02:27,562 - foo_service.py line+18 - INFO - do my business!
 2020-11-13 15:02:27,563 - foo_controller.py line+21 - INFO - my business done
 ````
-再次恭喜你，成功完成了初试牛刀！
+恭喜您，成功完成！
 
 
 ## 6 开发指南  
